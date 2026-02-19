@@ -11,35 +11,40 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onOpenCalendar: () -> Unit,
-    onDayCompleted: (routineDayNumber: Int, timestamp: Long) -> Unit = { _, _ -> }
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
-    var daysCount by rememberSaveable { mutableStateOf<Int?>(null) }
-    var showDialog by remember { mutableStateOf(true) }
-    var currentDayIndex by rememberSaveable { mutableIntStateOf(0) }
 
-    // Dialog para pedir cantidad de días
-    if (daysCount == null && showDialog) {
+    val daysCount by viewModel.daysCount.collectAsState()
+    val currentDayIndex by viewModel.currentDayIndex.collectAsState()
+    val exercises by viewModel.exercisesOfDay.collectAsState()
+
+    var showAddDialog by remember { mutableStateOf(false) }
+
+    val days = remember(daysCount) { daysCount?.let { (1..it).toList() } ?: emptyList() }
+    val currentDay = if (days.isNotEmpty()) days[currentDayIndex] else 0
+
+
+    if(daysCount == null){
         var input by remember { mutableStateOf("") }
+
         AlertDialog(
-            onDismissRequest = { /* no dismiss */ },
-            title = { Text(text = "¿De cuántos días es tu rutina?") },
+            onDismissRequest = { },
+            title = { Text("¿De cuántos días es tu rutina?") },
             text = {
                 OutlinedTextField(
                     value = input,
-                    onValueChange = { new ->
-                        input = new.filter { it.isDigit() }
-                    },
+                    onValueChange = { input = it.filter { c -> c.isDigit() } },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     placeholder = { Text("Ej: 3") },
                     singleLine = true
@@ -49,9 +54,7 @@ fun HomeScreen(
                 TextButton(onClick = {
                     val n = input.toIntOrNull() ?: 0
                     if (n > 0) {
-                        daysCount = n
-                        currentDayIndex = 0
-                        showDialog = false
+                        viewModel.saveRoutine(n)
                     }
                 }) {
                     Text("Aceptar")
@@ -60,48 +63,45 @@ fun HomeScreen(
         )
     }
 
-    val days = remember(daysCount) { daysCount?.let { (1..it).toList() } ?: emptyList() }
-    val currentDay = if (days.isNotEmpty()) days[currentDayIndex] else 0
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                // Título
+            Column {
                 TopAppBar(
                     title = { Text("Mi Rutina") },
                     actions = {
                         IconButton(onClick = onOpenCalendar) {
-                            Icon(
-                                imageVector = Icons.Default.CalendarMonth,
-                                contentDescription = "Ver calendario"
-                            )
+                            Icon(Icons.Default.CalendarMonth, contentDescription = "Calendario")
                         }
                     }
                 )
-                // Barra horizontal deslizable con los días
+
                 if (days.isNotEmpty()) {
-                    val scrollState = rememberScrollState()
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(scrollState)
-                            .padding(horizontal = 8.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .horizontalScroll(rememberScrollState())
+                            .padding(8.dp)
                     ) {
                         days.forEachIndexed { index, day ->
                             val selected = index == currentDayIndex
+
                             Surface(
                                 modifier = Modifier
                                     .padding(end = 8.dp)
-                                    .clickable { currentDayIndex = index },
+                                    .clickable { viewModel.selectDay(index) },
                                 shape = CircleShape,
-                                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                                tonalElevation = if (selected) 4.dp else 1.dp
+                                color = if (selected)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant
                             ) {
                                 Text(
                                     text = "Día $day",
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                    color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = if (selected)
+                                        MaterialTheme.colorScheme.onPrimary
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -119,31 +119,21 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        // Botón agregar ejercicio (izquierda)
-                        IconButton(onClick = {
-                            // TODO: Navegar a pantalla de agregar ejercicio
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Agregar ejercicio"
-                            )
+                        IconButton(onClick = { /* TODO: navegar a agregar ejercicio */ }) {
+                            Icon(Icons.Default.Add, contentDescription = "Agregar ejercicio")
                         }
 
-                        // Botón día completo (derecha)
-                        Button(onClick = {
-                            // Marcar día como entrenado con timestamp actual
-                            val timestamp = System.currentTimeMillis()
-                            onDayCompleted(currentDay, timestamp)
-                            // Avanza al siguiente día (ciclo)
-                            if (days.isNotEmpty()) {
-                                currentDayIndex = (currentDayIndex + 1) % days.size
+                        Button(
+                            onClick = {
+                                viewModel.completeDay(
+                                    daysSize = days.size,
+                                    currentIndex = currentDayIndex
+                                )
                             }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Día completo"
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
+
+                        ) {
+                            Icon(Icons.Default.Check, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
                             Text("Día completo")
                         }
                     }
@@ -158,7 +148,6 @@ fun HomeScreen(
                 .padding(16.dp)
         ) {
             if (days.isEmpty()) {
-                // Mensaje mientras no se configure la rutina
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -172,7 +161,6 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Placeholder para ejercicios
                 Text(
                     text = "Ejercicios del día",
                     style = MaterialTheme.typography.titleMedium

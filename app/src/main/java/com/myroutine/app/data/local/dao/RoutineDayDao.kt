@@ -33,5 +33,8 @@ interface RoutineDayDao {
 
     @Query("DELETE FROM routine_days")
     suspend fun deleteAllRoutineDays()
+
+    @Query("SELECT id FROM routine_days WHERE orderIndex = :orderIndex LIMIT 1")
+    fun getRoutineDayIdByOrder(orderIndex: Int): Flow<Long?>
 }
 

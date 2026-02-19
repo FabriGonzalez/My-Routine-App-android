@@ -30,5 +30,8 @@ interface ExerciseDao {
 
     @Query("DELETE FROM exercises WHERE routineDayId = :routineDayId")
     suspend fun deleteExercisesByDay(routineDayId: Long)
+
+    @Query("SELECT MAX(orderIndex) FROM exercises WHERE routineDayId = :routineDayId")
+    suspend fun getMaxOrderIndex(routineDayId: Long): Int?
 }
 

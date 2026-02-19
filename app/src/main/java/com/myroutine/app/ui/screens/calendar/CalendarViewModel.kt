@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.myroutine.app.data.local.entity.TrainingHistory
-import com.myroutine.app.data.repository.WorkoutRepository
+import com.myroutine.app.data.repositories.TrainingHistoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +20,7 @@ data class CalendarUiState(
 )
 
 class CalendarViewModel(
-    private val repository: WorkoutRepository
+    private val repository: TrainingHistoryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CalendarUiState())
@@ -96,7 +96,7 @@ class CalendarViewModel(
         return _uiState.value.trainedDates.contains(normalized)
     }
 
-    class Factory(private val repository: WorkoutRepository) : ViewModelProvider.Factory {
+    class Factory(private val repository: TrainingHistoryRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(CalendarViewModel::class.java)) {

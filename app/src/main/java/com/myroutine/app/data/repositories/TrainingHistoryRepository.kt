@@ -1,10 +1,10 @@
-package com.myroutine.app.data.repository
+package com.myroutine.app.data.repositories
 
 import com.myroutine.app.data.local.dao.TrainingHistoryDao
 import com.myroutine.app.data.local.entity.TrainingHistory
 import kotlinx.coroutines.flow.Flow
 
-class WorkoutRepository(
+class TrainingHistoryRepository(
     private val trainingHistoryDao: TrainingHistoryDao
 ) {
     fun getAllTrainingHistory(): Flow<List<TrainingHistory>> {
@@ -21,7 +21,7 @@ class WorkoutRepository(
 
     suspend fun saveTrainingHistory(routineDayNumber: Int, timestamp: Long) {
         val trainingHistory = TrainingHistory(
-            routineDayId = routineDayNumber.toLong(),
+            routineDayNumber = routineDayNumber,
             completedDate = timestamp
         )
         trainingHistoryDao.insertTrainingHistory(trainingHistory)
