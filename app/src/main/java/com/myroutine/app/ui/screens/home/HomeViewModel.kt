@@ -9,10 +9,8 @@ import com.myroutine.app.data.repositories.SettingsRepository
 import com.myroutine.app.data.repositories.TrainingHistoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -60,10 +58,14 @@ class HomeViewModel @Inject constructor(
         name: String,
         sets: Int,
         reps: Int,
-        weight: Double?
+        weight: Double,
+        dayIndex: Int
     ) = viewModelScope.launch {
+        val dayId = routineDayRepository
+            .getRoutineDayIdByIndex(dayIndex)
+            .firstOrNull()
 
-        val dayId = currentRoutineDayId.firstOrNull() ?: return@launch
+        if (dayId == null) return@launch
 
         exerciseRepository.insertExercise(
             routineDayId = dayId,

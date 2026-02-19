@@ -1,5 +1,6 @@
 package com.myroutine.app.ui.screens.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -17,6 +18,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.myroutine.app.ui.components.AddExerciseDialog
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -119,7 +126,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        IconButton(onClick = { /* TODO: navegar a agregar ejercicio */ }) {
+                        IconButton(onClick = { showAddDialog = true }) {
                             Icon(Icons.Default.Add, contentDescription = "Agregar ejercicio")
                         }
 
@@ -147,6 +154,7 @@ fun HomeScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
+
             if (days.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -154,24 +162,120 @@ fun HomeScreen(
                 ) {
                     Text("Configura tu rutina para comenzar")
                 }
-            } else {
-                Text(
-                    text = "Día $currentDay",
-                    style = MaterialTheme.typography.headlineMedium
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                return@Column
+            }
 
-                Text(
-                    text = "Ejercicios del día",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Día $currentDay",
+                style = MaterialTheme.typography.headlineMedium
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Ejercicios del día",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (exercises.isEmpty()) {
                 Text(
                     text = "Presiona + para agregar ejercicios",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    items(
+                        items = exercises,
+                        key = { it.id}
+                    ) { exercise ->
+
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            confirmValueChange = { value ->
+                                if(value != SwipeToDismissBoxValue.Settled) {
+                                    viewModel.deleteExercise(exercise)
+                                    true
+                                } else false
+                            }
+                        )
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            backgroundContent = {
+                                val showBackground =
+                                    dismissState.targetValue != SwipeToDismissBoxValue.Settled
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(MaterialTheme.shapes.medium)
+                                        .padding(vertical = 4.dp)
+                                        .background(
+                                            if(showBackground) MaterialTheme.colorScheme.error
+                                            else Color.Transparent
+                                        ),
+                                    contentAlignment = when(dismissState.dismissDirection){
+                                        SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
+                                        SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
+                                        else -> Alignment.Center
+                                    }
+                                ) {
+                                    if(showBackground){
+                                        Text(
+                                            text = "Borrar ejercicio",
+                                            color = MaterialTheme.colorScheme.onError,
+                                            modifier = Modifier.padding(horizontal = 16.dp)
+                                        )
+                                    }
+                                }
+                            },
+                            content = {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    shape = MaterialTheme.shapes.medium
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(12.dp)
+                                    ) {
+                                        Text(
+                                            text = exercise.name,
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+
+                                        Spacer(Modifier.height(4.dp))
+
+                                        val weightText = exercise.weight?.let { "$it kg" } ?: ""
+
+                                        Text(
+                                            text = "${exercise.sets} x ${exercise.reps}" +
+                                                    if (weightText.isNotEmpty()) " · $weightText" else "",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
             }
         }
+    }
+
+    if(showAddDialog){
+        AddExerciseDialog(
+            show = showAddDialog,
+            currentDayIndex = currentDayIndex,
+            onDismiss = { showAddDialog = false },
+            onAddExercise = {name, sets, reps, weight, dayIndex ->
+                viewModel.addExercise(name = name, sets = sets, reps = reps, weight = weight, dayIndex)
+                showAddDialog = false
+            }
+        )
     }
 }

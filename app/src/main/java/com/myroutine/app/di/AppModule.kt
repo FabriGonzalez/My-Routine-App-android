@@ -2,7 +2,11 @@ package com.myroutine.app.di
 
 import android.content.Context
 import com.myroutine.app.data.local.AppDatabase
+import com.myroutine.app.data.local.dao.ExerciseDao
+import com.myroutine.app.data.local.dao.RoutineDayDao
 import com.myroutine.app.data.local.dao.TrainingHistoryDao
+import com.myroutine.app.data.repositories.ExerciseRepository
+import com.myroutine.app.data.repositories.RoutineDayRepository
 import com.myroutine.app.data.repositories.SettingsRepository
 import com.myroutine.app.data.repositories.TrainingHistoryRepository
 import com.myroutine.app.datastore.SettingsDataStore
@@ -29,6 +33,14 @@ object AppModule {
         db.trainingHistoryDao()
 
     @Provides
+    fun provideExerciseDao(db: AppDatabase) =
+        db.exerciseDao()
+
+    @Provides
+    fun provideRoutineDayDao(db: AppDatabase): RoutineDayDao =
+        db.routineDayDao()
+
+    @Provides
     @Singleton
     fun provideSettingsDataStore(
         @ApplicationContext context: Context
@@ -45,4 +57,16 @@ object AppModule {
     fun provideWorkoutRepository(
         dao: TrainingHistoryDao
     ) = TrainingHistoryRepository(dao)
+
+    @Provides
+    @Singleton
+    fun provideExerciseRepository(
+        dao: ExerciseDao
+    ): ExerciseRepository = ExerciseRepository(dao)
+
+    @Provides
+    @Singleton
+    fun provideRoutineDayRepository(
+        dao: RoutineDayDao
+    ): RoutineDayRepository = RoutineDayRepository(dao)
 }
