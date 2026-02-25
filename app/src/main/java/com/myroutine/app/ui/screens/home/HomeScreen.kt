@@ -19,11 +19,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.myroutine.app.ui.components.AddExerciseDialog
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
+import com.myroutine.app.ui.components.TableContent
+import com.myroutine.app.ui.components.TableHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,15 +85,18 @@ fun HomeScreen(
                 if (days.isNotEmpty()) {
                     Row(
                         modifier = Modifier
-                            .horizontalScroll(rememberScrollState())
-                            .padding(8.dp)
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         days.forEachIndexed { index, day ->
                             val selected = index == currentDayIndex
 
                             Surface(
                                 modifier = Modifier
-                                    .padding(end = 8.dp)
+                                    .weight(1f)
+                                    .height(40.dp)
                                     .clickable { viewModel.selectDay(index) },
                                 shape = CircleShape,
                                 color = if (selected)
@@ -102,14 +104,18 @@ fun HomeScreen(
                                 else
                                     MaterialTheme.colorScheme.surfaceVariant
                             ) {
-                                Text(
-                                    text = "Día $day",
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                    color = if (selected)
-                                        MaterialTheme.colorScheme.onPrimary
-                                    else
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "Día $day",
+                                        color = if (selected)
+                                            MaterialTheme.colorScheme.onPrimary
+                                        else
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
                     }
@@ -118,16 +124,41 @@ fun HomeScreen(
         },
         bottomBar = {
             if (days.isNotEmpty()) {
-                BottomAppBar {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.Transparent,
+                    tonalElevation = 3.dp
+                ) {
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                        modifier = Modifier.fillMaxWidth()
+                    )
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp),
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        IconButton(onClick = { showAddDialog = true }) {
-                            Icon(Icons.Default.Add, contentDescription = "Agregar ejercicio")
+                        OutlinedButton(
+                            onClick = { showAddDialog = true },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            border = ButtonDefaults.outlinedButtonBorder
+                        ) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "Agregar ejercicio",
+                                style = MaterialTheme.typography.titleSmall
+                            )
                         }
 
                         Button(
@@ -136,12 +167,25 @@ fun HomeScreen(
                                     daysSize = days.size,
                                     currentIndex = currentDayIndex
                                 )
-                            }
-
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
                         ) {
-                            Icon(Icons.Default.Check, contentDescription = null)
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
                             Spacer(Modifier.width(8.dp))
-                            Text("Día completo")
+                            Text(
+                                "Día completo",
+                                style = MaterialTheme.typography.titleSmall
+                            )
                         }
                     }
                 }
@@ -164,21 +208,6 @@ fun HomeScreen(
                 }
                 return@Column
             }
-
-            Text(
-                text = "Día $currentDay",
-                style = MaterialTheme.typography.headlineMedium
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Ejercicios del día",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             if (exercises.isEmpty()) {
                 Text(
                     text = "Presiona + para agregar ejercicios",
@@ -186,82 +215,19 @@ fun HomeScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ) {
-                    items(
-                        items = exercises,
-                        key = { it.id}
-                    ) { exercise ->
+                Column(modifier = Modifier.fillMaxSize()) {
 
-                        val dismissState = rememberSwipeToDismissBoxState(
-                            confirmValueChange = { value ->
-                                if(value != SwipeToDismissBoxValue.Settled) {
-                                    viewModel.deleteExercise(exercise)
-                                    true
-                                } else false
-                            }
-                        )
-                        SwipeToDismissBox(
-                            state = dismissState,
-                            backgroundContent = {
-                                val showBackground =
-                                    dismissState.targetValue != SwipeToDismissBoxValue.Settled
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(MaterialTheme.shapes.medium)
-                                        .padding(vertical = 4.dp)
-                                        .background(
-                                            if(showBackground) MaterialTheme.colorScheme.error
-                                            else Color.Transparent
-                                        ),
-                                    contentAlignment = when(dismissState.dismissDirection){
-                                        SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
-                                        SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
-                                        else -> Alignment.Center
-                                    }
-                                ) {
-                                    if(showBackground){
-                                        Text(
-                                            text = "Borrar ejercicio",
-                                            color = MaterialTheme.colorScheme.onError,
-                                            modifier = Modifier.padding(horizontal = 16.dp)
-                                        )
-                                    }
-                                }
-                            },
-                            content = {
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
-                                    shape = MaterialTheme.shapes.medium
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(12.dp)
-                                    ) {
-                                        Text(
-                                            text = exercise.name,
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
+                    TableHeader()
 
-                                        Spacer(Modifier.height(4.dp))
-
-                                        val weightText = exercise.weight?.let { "$it kg" } ?: ""
-
-                                        Text(
-                                            text = "${exercise.sets} x ${exercise.reps}" +
-                                                    if (weightText.isNotEmpty()) " · $weightText" else "",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                            }
-                        )
-                    }
+                    TableContent(
+                        exercises = exercises,
+                        onDelete = { viewModel.deleteExercise(it) },
+                        onMove = { from, to ->
+                            viewModel.reorderExercises(from, to, exercises)
+                        },
+                        onUpdate = { viewModel.updateExercise(it) },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }

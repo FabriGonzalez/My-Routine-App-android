@@ -104,4 +104,28 @@ class HomeViewModel @Inject constructor(
             settingsRepository.saveCurrentDay(newIndex)
         }
     }
+
+    fun reorderExercises(
+        fromIndex: Int,
+        toIndex: Int,
+        exercises: List<Exercise>
+    ){
+        viewModelScope.launch {
+            val mutable = exercises.toMutableList()
+            val moved = mutable.removeAt(fromIndex)
+            mutable.add(toIndex, moved)
+
+            mutable.forEachIndexed { index, exercise ->
+                exerciseRepository.updateExercise(
+                    exercise.copy(orderIndex = index)
+                )
+            }
+        }
+    }
+
+    fun updateExercise(exercise: Exercise) {
+        viewModelScope.launch {
+            exerciseRepository.updateExercise(exercise)
+        }
+    }
 }

@@ -33,7 +33,6 @@ class CalendarViewModel(
     private fun loadTrainedDates() {
         viewModelScope.launch {
             repository.getAllTrainedDates().collect { dates ->
-                // Normalizar las fechas a inicio del día para comparación
                 val normalizedDates = dates.map { normalizeToStartOfDay(it) }.toSet()
                 _uiState.value = _uiState.value.copy(trainedDates = normalizedDates)
             }
