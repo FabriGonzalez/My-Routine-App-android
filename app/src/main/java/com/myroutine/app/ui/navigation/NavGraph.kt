@@ -2,7 +2,6 @@ package com.myroutine.app.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
@@ -13,6 +12,7 @@ import com.myroutine.app.data.repositories.TrainingHistoryRepository
 import com.myroutine.app.ui.screens.home.HomeScreen
 import com.myroutine.app.ui.screens.calendar.CalendarScreen
 import com.myroutine.app.ui.screens.calendar.CalendarViewModel
+import com.myroutine.app.ui.theme.ThemeViewModel
 
 sealed class Screen(val route: String){
     object Home : Screen("home")
@@ -20,12 +20,10 @@ sealed class Screen(val route: String){
 }
 
 @Composable
-fun NavGraph(){
+fun NavGraph(themeViewModel: ThemeViewModel){
     val navController = rememberNavController()
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
 
-    // Inicializar base de datos y repositorio
     val database = remember { AppDatabase.getDatabase(context) }
     val repository = remember { TrainingHistoryRepository(database.trainingHistoryDao()) }
 
@@ -38,7 +36,8 @@ fun NavGraph(){
             HomeScreen(
                 onOpenCalendar = {
                     navController.navigate(Screen.Calendar.route)
-                }
+                },
+                themeViewModel = themeViewModel
             )
         }
 

@@ -1,62 +1,30 @@
 package com.myroutine.app.ui.theme
 
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-
-private val DarkColorScheme = darkColorScheme(
-    primary = GreenNeon,
-    secondary = BlueElectric,
-    tertiary = OrangeEnergy,
-
-    background = DarkBackground,
-    surface = DarkSurface,
-
-    onPrimary = Color.Black,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-
-    onBackground = Color.White,
-    onSurface = Color.White
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = GreenPrimary,
-    secondary = BlueSecondary,
-    tertiary = OrangeAccent,
-
-    background = LightBackground,
-    surface = LightSurface,
-
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-
-    onBackground = Color.Black,
-    onSurface = Color.Black
-)
 
 @Composable
 fun MyRoutineTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false,
+    themeConfig: AppThemeConfig,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+
+    val primary = themeConfig.primary
+    val background = themeConfig.background
+    val surface = themeConfig.surface
+
+    val secondary = generateSecondary(primary)
+
+    val colorScheme = darkColorScheme(
+        primary = primary,
+        secondary = secondary,
+        background = background,
+        surface = surface,
+        onPrimary = autoContentColor(primary),
+        onBackground = autoContentColor(background),
+        onSurface = autoContentColor(surface)
+    )
 
     MaterialTheme(
         colorScheme = colorScheme,

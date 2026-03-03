@@ -30,6 +30,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextAlign
 import com.myroutine.app.data.local.entity.Exercise
+import com.myroutine.app.data.local.entity.MeasureType
+
+private fun formatMeasure(value: Double): String {
+    return if (value % 1.0 == 0.0) {
+        value.toLong().toString()
+    } else {
+        value.toString()
+    }
+}
 
 @Composable
 fun TableContent(
@@ -107,8 +116,9 @@ fun TableContent(
             ) {
                 Column {
                     var weightText by remember(exercise.id) {
-                        mutableStateOf((exercise.weight ?: 0.0).toString())
+                        mutableStateOf(formatMeasure(exercise.measureValue))
                     }
+
                     var repsText by remember(exercise.id) {
                         mutableStateOf(exercise.reps.toString())
                     }
@@ -119,6 +129,24 @@ fun TableContent(
                     var isWeightFocused by remember { mutableStateOf(false) }
                     var isRepsFocused by remember { mutableStateOf(false) }
                     var isSetsFocused by remember { mutableStateOf(false) }
+
+                    LaunchedEffect(exercise.measureValue) {
+                        if (!isWeightFocused) {
+                            val formatted = formatMeasure(exercise.measureValue)
+                            if (formatted != weightText) {
+                                weightText = formatted
+                            }
+                        }
+                    }
+
+                    LaunchedEffect(isWeightFocused) {
+                        if (!isWeightFocused) {
+                            val formatted = formatMeasure(exercise.measureValue)
+                            if (formatted != weightText) {
+                                weightText = formatted
+                            }
+                        }
+                    }
 
                     Row(
                         modifier = Modifier
@@ -140,56 +168,81 @@ fun TableContent(
                                 .weight(1f)
                                 .border(
                                     width = 1.dp,
-                                    color = if (isWeightFocused) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.outline,
+                                    color = if (isWeightFocused)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.outline,
                                     shape = RoundedCornerShape(8.dp)
                                 )
-                                .padding(vertical = 10.dp, horizontal = 8.dp)
+                                .padding(vertical = 10.dp, horizontal = 8.dp),
+                            contentAlignment = Alignment.Center
                         ) {
+
+                            val unit = when (exercise.measureType) {
+                                MeasureType.WEIGHT -> "kg"
+                                MeasureType.TIME -> "s"
+                            }
+
                             BasicTextField(
                                 value = weightText,
                                 onValueChange = { newValue ->
                                     if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
                                         weightText = newValue
-                                        val newWeight = newValue.toDoubleOrNull() ?: 0.0
-                                        onUpdate(exercise.copy(weight = newWeight))
+                                        val parsed = newValue.toDoubleOrNull()
+
+                                        when {
+                                            newValue.isEmpty() -> {
+                                                onUpdate(exercise.copy(measureValue = 0.0))
+                                            }
+                                            parsed != null -> {
+                                                onUpdate(exercise.copy(measureValue = parsed))
+                                            }
+                                        }
                                     }
                                 },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal
+                                ),
                                 textStyle = TextStyle(
                                     textAlign = TextAlign.Center,
-                                    color = if (isWeightFocused) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.onBackground,
-                                    fontSize = MaterialTheme.typography.bodyLarge.fontSize
+                                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                                    color = MaterialTheme.colorScheme.onBackground
                                 ),
                                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                singleLine = true,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .onFocusChanged { focusState ->
-                                        if (focusState.isFocused && !isWeightFocused) {
-                                            weightText = ""
-                                        }
-                                        if (!focusState.isFocused && weightText.isEmpty()) {
-                                            weightText = (exercise.weight ?: 0.0).toString()
-                                        }
                                         isWeightFocused = focusState.isFocused
                                     },
                                 decorationBox = { innerTextField ->
+
                                     Row(
-                                        horizontalArrangement = Arrangement.Center,
+                                        modifier = Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
+
                                         Box(
                                             modifier = Modifier.weight(1f),
                                             contentAlignment = Alignment.Center
                                         ) {
+                                            if (weightText.isEmpty()) {
+                                                Text(
+                                                    text = "0",
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+                                                )
+                                            }
+
                                             innerTextField()
                                         }
+
+                                        Spacer(Modifier.width(4.dp))
+
                                         Text(
-                                            text = "kg",
+                                            text = unit,
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            color = MaterialTheme.colorScheme.primary
                                         )
                                     }
                                 }
@@ -300,7 +353,7 @@ fun TableContent(
                         Icon(
                             imageVector = Icons.Default.DragHandle,
                             contentDescription = "Reordenar",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                             modifier = Modifier
                                 .width(48.dp)
                                 .size(28.dp)

@@ -3,6 +3,7 @@ package com.myroutine.app.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.myroutine.app.data.local.entity.Exercise
+import com.myroutine.app.data.local.entity.MeasureType
 import com.myroutine.app.data.repositories.ExerciseRepository
 import com.myroutine.app.data.repositories.RoutineDayRepository
 import com.myroutine.app.data.repositories.SettingsRepository
@@ -58,7 +59,8 @@ class HomeViewModel @Inject constructor(
         name: String,
         sets: Int,
         reps: Int,
-        weight: Double,
+        measureValue: Double,
+        measureType: MeasureType,
         dayIndex: Int
     ) = viewModelScope.launch {
         val dayId = routineDayRepository
@@ -72,7 +74,8 @@ class HomeViewModel @Inject constructor(
             name = name,
             sets = sets,
             reps = reps,
-            weight = weight
+            measureValue = measureValue,
+            measureType = measureType
         )
     }
 

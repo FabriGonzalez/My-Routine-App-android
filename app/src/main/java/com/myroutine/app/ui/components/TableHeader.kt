@@ -31,7 +31,7 @@ fun TableHeader() {
                 modifier = Modifier.weight(2f),
                 fontWeight = FontWeight.Medium,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
             )
 
             Text(
@@ -40,7 +40,7 @@ fun TableHeader() {
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Medium,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
             )
 
             Spacer(Modifier.width(8.dp))
@@ -51,18 +51,18 @@ fun TableHeader() {
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Medium,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
             )
 
             Spacer(Modifier.width(8.dp))
 
             Text(
-                text = "SETS",
+                text = "SERIES",
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Medium,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
             )
 
             Spacer(Modifier.width(48.dp))

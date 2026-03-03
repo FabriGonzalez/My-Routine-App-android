@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.myroutine.app.data.local.converters.Converters
 import com.myroutine.app.data.local.dao.ExerciseDao
 import com.myroutine.app.data.local.dao.RoutineDayDao
 import com.myroutine.app.data.local.dao.TrainingHistoryDao
@@ -13,9 +15,11 @@ import com.myroutine.app.data.local.entity.TrainingHistory
 
 @Database(
     entities = [RoutineDay::class, Exercise::class, TrainingHistory::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
+
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     
     abstract fun routineDayDao(): RoutineDayDao

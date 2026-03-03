@@ -14,3 +14,4 @@ class SettingsRepository(
     suspend fun saveCurrentDay(index: Int) =
         dataStore.saveCurrentDayIndex(index)
 }
+

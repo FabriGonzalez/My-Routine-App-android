@@ -2,6 +2,7 @@ package com.myroutine.app.data.repositories
 
 import com.myroutine.app.data.local.dao.ExerciseDao
 import com.myroutine.app.data.local.entity.Exercise
+import com.myroutine.app.data.local.entity.MeasureType
 import kotlinx.coroutines.flow.Flow
 
 class ExerciseRepository (
@@ -15,14 +16,16 @@ class ExerciseRepository (
         name: String,
         sets: Int,
         reps: Int,
-        weight: Double?
+        measureValue: Double,
+        measureType: MeasureType
     ) {
         val exercise = Exercise(
             routineDayId = routineDayId,
             name = name,
             sets = sets,
             reps = reps,
-            weight = weight,
+            measureValue = measureValue,
+            measureType = measureType,
             orderIndex = getNextOrderIndex(routineDayId)
         )
 
