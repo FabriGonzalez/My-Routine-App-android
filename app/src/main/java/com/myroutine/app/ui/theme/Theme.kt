@@ -16,6 +16,8 @@ fun MyRoutineTheme(
 
     val secondary = generateSecondary(primary)
 
+    val outline = generateOutline(primary)
+
     val colorScheme = darkColorScheme(
         primary = primary,
         secondary = secondary,
@@ -23,7 +25,8 @@ fun MyRoutineTheme(
         surface = surface,
         onPrimary = autoContentColor(primary),
         onBackground = autoContentColor(background),
-        onSurface = autoContentColor(surface)
+        onSurface = autoContentColor(surface),
+        outline = outline
     )
 
     MaterialTheme(

@@ -25,7 +25,7 @@ fun NavGraph(themeViewModel: ThemeViewModel){
     val context = LocalContext.current
 
     val database = remember { AppDatabase.getDatabase(context) }
-    val repository = remember { TrainingHistoryRepository(database.trainingHistoryDao()) }
+    val repository = remember { TrainingHistoryRepository(database.trainingSessionDao()) }
 
     NavHost(
         navController = navController,

@@ -3,7 +3,9 @@ package com.myroutine.app.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.myroutine.app.data.local.entity.Exercise
+import com.myroutine.app.data.local.entity.ExerciseHistory
 import com.myroutine.app.data.local.entity.MeasureType
+import com.myroutine.app.data.repositories.ExerciseHistoryRepository
 import com.myroutine.app.data.repositories.ExerciseRepository
 import com.myroutine.app.data.repositories.RoutineDayRepository
 import com.myroutine.app.data.repositories.SettingsRepository
@@ -25,7 +27,8 @@ class HomeViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val trainingHistoryRepository: TrainingHistoryRepository,
     private val exerciseRepository: ExerciseRepository,
-    private val routineDayRepository: RoutineDayRepository
+    private val routineDayRepository: RoutineDayRepository,
+    private val exerciseHistoryRepository: ExerciseHistoryRepository
 ) : ViewModel() {
 
     val daysCount = settingsRepository.daysCount.stateIn(
@@ -95,15 +98,43 @@ class HomeViewModel @Inject constructor(
     }
 
     fun completeDay(daysSize: Int, currentIndex: Int) {
+
         viewModelScope.launch {
+
             val timestamp = System.currentTimeMillis()
 
-            trainingHistoryRepository.saveTrainingHistory(
-                routineDayNumber = currentIndex + 1,
-                timestamp = timestamp
-            )
+            val dayId = routineDayRepository
+                .getRoutineDayIdByIndex(currentIndex)
+                .firstOrNull()
+
+            if (dayId == null) return@launch
+
+            val exercises = exerciseRepository
+                .getExercisesByDay(dayId)
+                .firstOrNull()
+                ?: emptyList()
+
+            val sessionId = trainingHistoryRepository
+                .saveTrainingHistory(
+                    routineDayNumber = currentIndex + 1,
+                    timestamp = timestamp
+                )
+
+            val historyExercises = exercises.map {
+
+                ExerciseHistory(
+                    sessionId = sessionId,
+                    exerciseName = it.name,
+                    weight = it.measureValue.toFloat(),
+                    reps = it.reps,
+                    sets = it.sets
+                )
+            }
+
+            exerciseHistoryRepository.insertExercises(historyExercises)
 
             val newIndex = (currentIndex + 1) % daysSize
+
             settingsRepository.saveCurrentDay(newIndex)
         }
     }

@@ -7,15 +7,17 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.myroutine.app.data.local.converters.Converters
 import com.myroutine.app.data.local.dao.ExerciseDao
+import com.myroutine.app.data.local.dao.ExerciseHistoryDao
 import com.myroutine.app.data.local.dao.RoutineDayDao
-import com.myroutine.app.data.local.dao.TrainingHistoryDao
+import com.myroutine.app.data.local.dao.TrainingSessionDao
 import com.myroutine.app.data.local.entity.Exercise
+import com.myroutine.app.data.local.entity.ExerciseHistory
 import com.myroutine.app.data.local.entity.RoutineDay
-import com.myroutine.app.data.local.entity.TrainingHistory
+import com.myroutine.app.data.local.entity.TrainingSession
 
 @Database(
-    entities = [RoutineDay::class, Exercise::class, TrainingHistory::class],
-    version = 3,
+    entities = [RoutineDay::class, Exercise::class, TrainingSession::class, ExerciseHistory::class],
+    version = 4,
     exportSchema = false
 )
 
@@ -24,8 +26,9 @@ abstract class AppDatabase : RoomDatabase() {
     
     abstract fun routineDayDao(): RoutineDayDao
     abstract fun exerciseDao(): ExerciseDao
-    abstract fun trainingHistoryDao(): TrainingHistoryDao
-    
+    abstract fun trainingSessionDao(): TrainingSessionDao
+    abstract fun exerciseHistoryDao(): ExerciseHistoryDao
+
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null

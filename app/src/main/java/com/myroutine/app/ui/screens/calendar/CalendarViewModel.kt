@@ -3,7 +3,7 @@ package com.myroutine.app.ui.screens.calendar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.myroutine.app.data.local.entity.TrainingHistory
+import com.myroutine.app.data.local.relation.TrainingSessionWithExercises
 import com.myroutine.app.data.repositories.TrainingHistoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +16,7 @@ data class CalendarUiState(
     val currentMonth: Int = Calendar.getInstance().get(Calendar.MONTH),
     val trainedDates: Set<Long> = emptySet(),
     val selectedDate: Long? = null,
-    val trainingsForSelectedDate: List<TrainingHistory> = emptyList()
+    val trainingsForSelectedDate: List<TrainingSessionWithExercises> = emptyList()
 )
 
 class CalendarViewModel(
@@ -33,8 +33,13 @@ class CalendarViewModel(
     private fun loadTrainedDates() {
         viewModelScope.launch {
             repository.getAllTrainedDates().collect { dates ->
-                val normalizedDates = dates.map { normalizeToStartOfDay(it) }.toSet()
-                _uiState.value = _uiState.value.copy(trainedDates = normalizedDates)
+
+                val normalizedDates =
+                    dates.map { normalizeToStartOfDay(it) }.toSet()
+
+                _uiState.value = _uiState.value.copy(
+                    trainedDates = normalizedDates
+                )
             }
         }
     }
@@ -45,6 +50,7 @@ class CalendarViewModel(
             set(Calendar.MONTH, _uiState.value.currentMonth)
             add(Calendar.MONTH, -1)
         }
+
         _uiState.value = _uiState.value.copy(
             currentYear = calendar.get(Calendar.YEAR),
             currentMonth = calendar.get(Calendar.MONTH)
@@ -57,6 +63,7 @@ class CalendarViewModel(
             set(Calendar.MONTH, _uiState.value.currentMonth)
             add(Calendar.MONTH, 1)
         }
+
         _uiState.value = _uiState.value.copy(
             currentYear = calendar.get(Calendar.YEAR),
             currentMonth = calendar.get(Calendar.MONTH)
@@ -64,45 +71,69 @@ class CalendarViewModel(
     }
 
     fun selectDate(timestamp: Long) {
+
         val normalizedTimestamp = normalizeToStartOfDay(timestamp)
-        _uiState.value = _uiState.value.copy(selectedDate = normalizedTimestamp)
+
+        _uiState.value = _uiState.value.copy(
+            selectedDate = normalizedTimestamp
+        )
+
         loadTrainingsForDate(normalizedTimestamp)
     }
 
     private fun loadTrainingsForDate(timestamp: Long) {
+
         viewModelScope.launch {
+
             val startOfDay = timestamp
             val endOfDay = timestamp + 24 * 60 * 60 * 1000 - 1
-            repository.getTrainingHistoryByDateRange(startOfDay, endOfDay).collect { trainings ->
-                _uiState.value = _uiState.value.copy(trainingsForSelectedDate = trainings)
+
+            repository.getTrainingSessionsWithExercisesByDateRange(
+                startOfDay,
+                endOfDay
+            ).collect { sessions ->
+
+                _uiState.value = _uiState.value.copy(
+                    trainingsForSelectedDate = sessions
+                )
             }
         }
     }
 
     private fun normalizeToStartOfDay(timestamp: Long): Long {
+
         val calendar = Calendar.getInstance().apply {
+
             timeInMillis = timestamp
+
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
+
         return calendar.timeInMillis
     }
 
     fun isDayTrained(dayTimestamp: Long): Boolean {
+
         val normalized = normalizeToStartOfDay(dayTimestamp)
+
         return _uiState.value.trainedDates.contains(normalized)
     }
 
-    class Factory(private val repository: TrainingHistoryRepository) : ViewModelProvider.Factory {
+    class Factory(
+        private val repository: TrainingHistoryRepository
+    ) : ViewModelProvider.Factory {
+
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
+
             if (modelClass.isAssignableFrom(CalendarViewModel::class.java)) {
                 return CalendarViewModel(repository) as T
             }
+
             throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }
-

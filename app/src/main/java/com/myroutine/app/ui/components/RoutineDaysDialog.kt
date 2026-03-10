@@ -35,13 +35,13 @@ fun RoutineDaysDialog(
                 value = input,
                 onValueChange = { input = it.filter { c -> c.isDigit() } },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                placeholder = { Text("Ej: 3", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                placeholder = { Text("Ej: 3", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)) },
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                     focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                     cursorColor = MaterialTheme.colorScheme.primary,
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface

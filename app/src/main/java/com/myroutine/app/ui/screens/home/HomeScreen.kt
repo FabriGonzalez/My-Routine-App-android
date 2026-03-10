@@ -1,5 +1,6 @@
 package com.myroutine.app.ui.screens.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -92,6 +93,11 @@ fun HomeScreen(
                     )
 
                     if (days.isNotEmpty()) {
+                        HorizontalDivider(
+                            thickness = 1.dp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -139,7 +145,7 @@ fun HomeScreen(
                     ) {
                         HorizontalDivider(
                             thickness = 1.dp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.fillMaxWidth()
                         )
                         Row(
@@ -154,17 +160,23 @@ fun HomeScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(56.dp),
-                                shape = RoundedCornerShape(16.dp)
+                                shape = RoundedCornerShape(16.dp),
+                                border = BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.onSurface                    // Borde
+                                )
                             ) {
                                 Icon(
                                     Icons.Default.Add,
                                     contentDescription = null,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(24.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
                                     "Agregar",
-                                    style = MaterialTheme.typography.titleSmall
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
 

@@ -3,8 +3,10 @@ package com.myroutine.app.di
 import android.content.Context
 import com.myroutine.app.data.local.AppDatabase
 import com.myroutine.app.data.local.dao.ExerciseDao
+import com.myroutine.app.data.local.dao.ExerciseHistoryDao
 import com.myroutine.app.data.local.dao.RoutineDayDao
-import com.myroutine.app.data.local.dao.TrainingHistoryDao
+import com.myroutine.app.data.local.dao.TrainingSessionDao
+import com.myroutine.app.data.repositories.ExerciseHistoryRepository
 import com.myroutine.app.data.repositories.ExerciseRepository
 import com.myroutine.app.data.repositories.RoutineDayRepository
 import com.myroutine.app.data.repositories.SettingsRepository
@@ -21,6 +23,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+
     @Provides
     @Singleton
     fun provideDatabase(
@@ -28,12 +31,13 @@ object AppModule {
     ): AppDatabase =
         AppDatabase.getDatabase(context)
 
-    @Provides
-    fun provideTrainingHistoryDao(db: AppDatabase): TrainingHistoryDao =
-        db.trainingHistoryDao()
 
     @Provides
-    fun provideExerciseDao(db: AppDatabase) =
+    fun provideTrainingSessionDao(db: AppDatabase): TrainingSessionDao =
+        db.trainingSessionDao()
+
+    @Provides
+    fun provideExerciseDao(db: AppDatabase): ExerciseDao =
         db.exerciseDao()
 
     @Provides
@@ -41,10 +45,16 @@ object AppModule {
         db.routineDayDao()
 
     @Provides
+    fun provideExerciseHistoryDao(db: AppDatabase): ExerciseHistoryDao =
+        db.exerciseHistoryDao()
+
+
+    @Provides
     @Singleton
     fun provideSettingsDataStore(
         @ApplicationContext context: Context
     ) = SettingsDataStore(context)
+
 
     @Provides
     @Singleton
@@ -54,19 +64,25 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideWorkoutRepository(
-        dao: TrainingHistoryDao
+    fun provideTrainingHistoryRepository(
+        dao: TrainingSessionDao
     ) = TrainingHistoryRepository(dao)
 
     @Provides
     @Singleton
     fun provideExerciseRepository(
         dao: ExerciseDao
-    ): ExerciseRepository = ExerciseRepository(dao)
+    ) = ExerciseRepository(dao)
 
     @Provides
     @Singleton
     fun provideRoutineDayRepository(
         dao: RoutineDayDao
-    ): RoutineDayRepository = RoutineDayRepository(dao)
+    ) = RoutineDayRepository(dao)
+
+    @Provides
+    @Singleton
+    fun provideExerciseHistoryRepository(
+        dao: ExerciseHistoryDao
+    ) = ExerciseHistoryRepository(dao)
 }

@@ -22,6 +22,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.material.icons.filled.FitnessCenter
+import com.myroutine.app.data.local.relation.TrainingSessionWithExercises
+import com.myroutine.app.ui.components.ExerciseHistoryTable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +60,6 @@ fun CalendarScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // Navegación de mes
             MonthNavigator(
                 year = uiState.currentYear,
                 month = uiState.currentMonth,
@@ -67,12 +69,10 @@ fun CalendarScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Encabezados de días de la semana
             WeekDaysHeader()
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Grilla del calendario
             CalendarGrid(
                 year = uiState.currentYear,
                 month = uiState.currentMonth,
@@ -83,15 +83,13 @@ fun CalendarScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Leyenda
             CalendarLegend()
 
-            // Información del día seleccionado
             uiState.selectedDate?.let { selectedDate ->
                 Spacer(modifier = Modifier.height(16.dp))
                 SelectedDateInfo(
                     date = selectedDate,
-                    trainingsCount = uiState.trainingsForSelectedDate.size
+                    sessions = uiState.trainingsForSelectedDate
                 )
             }
         }
@@ -118,20 +116,23 @@ private fun MonthNavigator(
         IconButton(onClick = onPreviousMonth) {
             Icon(
                 imageVector = Icons.Default.ChevronLeft,
-                contentDescription = "Mes anterior"
+                contentDescription = "Mes anterior",
+                tint = MaterialTheme.colorScheme.onBackground
             )
         }
 
         Text(
             text = "${monthNames[month]} $year",
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         IconButton(onClick = onNextMonth) {
             Icon(
                 imageVector = Icons.Default.ChevronRight,
-                contentDescription = "Mes siguiente"
+                contentDescription = "Mes siguiente",
+                tint = MaterialTheme.colorScheme.onBackground
             )
         }
     }
@@ -152,7 +153,7 @@ private fun WeekDaysHeader() {
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
     }
@@ -206,7 +207,6 @@ private fun CalendarDayCell(
     currentMonth: Int,
     onDateSelected: () -> Unit
 ) {
-    val isCurrentMonth = day?.get(Calendar.MONTH) == currentMonth
 
     Box(
         modifier = Modifier
@@ -229,7 +229,7 @@ private fun CalendarDayCell(
             )
             .then(
                 if (isTrained) {
-                    Modifier.background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                    Modifier.background(MaterialTheme.colorScheme.onBackground, CircleShape)
                 } else {
                     Modifier
                 }
@@ -237,16 +237,22 @@ private fun CalendarDayCell(
         contentAlignment = Alignment.Center
     ) {
         day?.let {
-            Text(
-                text = it.get(Calendar.DAY_OF_MONTH).toString(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = when {
-                    isTrained -> MaterialTheme.colorScheme.onPrimaryContainer
-                    !isCurrentMonth -> MaterialTheme.colorScheme.outline
-                    else -> MaterialTheme.colorScheme.onSurface
-                },
-                fontWeight = if (isToday || isTrained) FontWeight.Bold else FontWeight.Normal
-            )
+
+            if (isTrained) {
+                Icon(
+                    imageVector = Icons.Default.FitnessCenter,
+                    contentDescription = "Día entrenado",
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.background
+                )
+            } else {
+                Text(
+                    text = it.get(Calendar.DAY_OF_MONTH).toString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
+                )
+            }
         }
     }
 }
@@ -257,7 +263,6 @@ private fun CalendarLegend() {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Día entrenado
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -265,15 +270,22 @@ private fun CalendarLegend() {
             Box(
                 modifier = Modifier
                     .size(16.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-            )
+                    .background(MaterialTheme.colorScheme.onBackground, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.FitnessCenter,
+                    contentDescription = "Día entrenado",
+                    modifier = Modifier.size(10.dp),
+                    tint = MaterialTheme.colorScheme.background
+                )
+            }
             Text(
                 text = "Día entrenado",
                 style = MaterialTheme.typography.bodySmall
             )
         }
 
-        // Hoy
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -294,45 +306,65 @@ private fun CalendarLegend() {
 @Composable
 private fun SelectedDateInfo(
     date: Long,
-    trainingsCount: Int
+    sessions: List<TrainingSessionWithExercises>
 ) {
+
     val dateFormat = SimpleDateFormat("EEEE, d 'de' MMMM", Locale("es", "ES"))
     val formattedDate = dateFormat.format(Date(date))
 
-    Card(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
+
+        Text(
+            text = formattedDate.replaceFirstChar { it.uppercase() },
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        if (sessions.isEmpty()) {
+
             Text(
-                text = formattedDate.replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = if (trainingsCount > 0) {
-                    "✅ $trainingsCount entrenamiento(s) completado(s)"
-                } else {
-                    "Sin entrenamientos registrados"
-                },
+                text = "Sin entrenamientos registrados",
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (trainingsCount > 0) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+        } else {
+
+            sessions.forEach { session ->
+
+                Card(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+
+                    Column(
+                        modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                    ) {
+
+                        Text(
+                            text = "Día ${session.session.routineDayNumber}",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        Spacer(Modifier.height(12.dp))
+
+                        ExerciseHistoryTable(
+                            exercises = session.exercises,
+                            modifier = Modifier
+                            .heightIn(max = 300.dp)
+                            .fillMaxWidth()
+                        )
+                    }
+                }
+            }
         }
     }
 }
-
 private fun getCalendarDays(year: Int, month: Int): List<Calendar?> {
     val days = mutableListOf<Calendar?>()
 
@@ -348,12 +380,10 @@ private fun getCalendarDays(year: Int, month: Int): List<Calendar?> {
 
     val firstDayOfWeek = firstDayOfMonth.get(Calendar.DAY_OF_WEEK) - 1
 
-    // Agregar días vacíos al inicio
     repeat(firstDayOfWeek) {
         days.add(null)
     }
 
-    // Agregar días del mes
     val daysInMonth = firstDayOfMonth.getActualMaximum(Calendar.DAY_OF_MONTH)
     for (day in 1..daysInMonth) {
         days.add(Calendar.getInstance().apply {
@@ -367,7 +397,6 @@ private fun getCalendarDays(year: Int, month: Int): List<Calendar?> {
         })
     }
 
-    // Completar la última fila si es necesario
     while (days.size % 7 != 0) {
         days.add(null)
     }

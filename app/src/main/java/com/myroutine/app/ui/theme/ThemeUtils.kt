@@ -19,3 +19,7 @@ fun generateSecondary(primary: Color): Color {
         primary.copy(alpha = 0.9f)
     }
 }
+
+fun generateOutline(primary: Color) : Color {
+    return primary.copy(alpha = 0.5f)
+}
