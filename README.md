@@ -24,10 +24,19 @@ Aplicación Android para crear y seguir rutinas de entrenamiento por días. Perm
 
 ## 📸 Capturas
 
-![Home](screenshots/home.png)  
-![Calendario](screenshots/calendar.png)  
-![Agregar ejercicio](screenshots/add_exercise.png)  
-![Ajustes](screenshots/settings.png)  
+## 📸 Capturas
+
+<p align="center">
+  <img src="screenshots/home.jpg" width="250">
+  <img src="screenshots/calendar1.jpg" width="250">
+  <img src="screenshots/calendar2.jpg" width="250">
+</p>
+
+<p align="center">
+  <img src="screenshots/add_exercise.jpg" width="250">
+  <img src="screenshots/settings.jpg" width="250">
+  <img src="screenshots/color_picker.jpg" width="250">
+</p>
 
 ---
 
