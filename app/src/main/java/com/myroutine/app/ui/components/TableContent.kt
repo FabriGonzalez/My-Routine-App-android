@@ -126,9 +126,20 @@ fun TableContent(
                         mutableStateOf(exercise.sets.toString())
                     }
 
+                    var nameText by remember(exercise.id) {
+                        mutableStateOf(exercise.name)
+                    }
+
                     var isWeightFocused by remember { mutableStateOf(false) }
                     var isRepsFocused by remember { mutableStateOf(false) }
                     var isSetsFocused by remember { mutableStateOf(false) }
+                    var isNameFocused by remember { mutableStateOf(false) }
+
+                    LaunchedEffect(exercise.name) {
+                        if (!isNameFocused && nameText != exercise.name) {
+                            nameText = exercise.name
+                        }
+                    }
 
                     LaunchedEffect(exercise.measureValue) {
                         if (!isWeightFocused) {
@@ -155,13 +166,64 @@ fun TableContent(
                             .padding(horizontal = 16.dp, vertical = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = exercise.name,
-                            modifier = Modifier.weight(2f),
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
+                        Box(
+                            modifier = Modifier
+                                .weight(2f),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            BasicTextField(
+                                value = nameText,
+                                onValueChange = { newValue ->
+                                    nameText = newValue
+                                    val trimmed = newValue.trim()
+                                    if (trimmed.isNotEmpty() && trimmed != exercise.name) {
+                                        onUpdate(exercise.copy(name = trimmed))
+                                    }
+                                },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                                textStyle = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                                    color = if (isNameFocused) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onBackground
+                                ),
+                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onFocusChanged { focusState ->
+                                        if (focusState.isFocused && !isNameFocused) {
+                                            if (nameText == exercise.name) {
+                                                nameText = ""
+                                            }
+                                        }
+
+                                        if (!focusState.isFocused) {
+                                            val trimmed = nameText.trim()
+                                            if (trimmed.isEmpty()) {
+                                                nameText = exercise.name
+                                            } else if (trimmed != exercise.name) {
+                                                onUpdate(exercise.copy(name = trimmed))
+                                            }
+                                        }
+
+                                        isNameFocused = focusState.isFocused
+                                    },
+                                decorationBox = { innerTextField ->
+                                    Box(contentAlignment = Alignment.CenterStart) {
+                                        if (nameText.isEmpty()) {
+                                            Text(
+                                                text = exercise.name,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+                                            )
+                                        }
+                                        innerTextField()
+                                    }
+                                }
+                            )
+                        }
 
                         Box(
                             modifier = Modifier
