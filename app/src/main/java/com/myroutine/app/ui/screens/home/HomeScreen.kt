@@ -37,6 +37,7 @@ fun HomeScreen(
     val currentDayIndex by viewModel.currentDayIndex.collectAsState()
     val exercises by viewModel.exercisesOfDay.collectAsState()
     val hasTrainedToday by viewModel.hasTrainedToday.collectAsState()
+    val isCompletingDay by viewModel.isCompletingDay.collectAsState()
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -196,16 +197,28 @@ fun HomeScreen(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                                 ),
-                                enabled = !hasTrainedToday
+                                enabled = !hasTrainedToday && !isCompletingDay
                             ) {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp)
-                                )
+                                if (isCompletingDay) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Icon(
+                                        Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    text = if (hasTrainedToday) "Ya entrenaste hoy" else "Día completo",
+                                    text = when {
+                                        hasTrainedToday -> "Ya entrenaste hoy"
+                                        isCompletingDay -> "Guardando..."
+                                        else -> "Día completo"
+                                    },
                                     style = MaterialTheme.typography.titleSmall
                                 )
                             }

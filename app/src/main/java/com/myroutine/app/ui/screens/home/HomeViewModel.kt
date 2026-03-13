@@ -11,6 +11,7 @@ import com.myroutine.app.data.repositories.RoutineDayRepository
 import com.myroutine.app.data.repositories.SettingsRepository
 import com.myroutine.app.data.repositories.TrainingHistoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -62,6 +64,9 @@ class HomeViewModel @Inject constructor(
 
     private val _hasTrainedToday = MutableStateFlow(false)
     val hasTrainedToday: StateFlow<Boolean> = _hasTrainedToday.asStateFlow()
+
+    private val _isCompletingDay = MutableStateFlow(false)
+    val isCompletingDay: StateFlow<Boolean> = _isCompletingDay.asStateFlow()
 
     init {
         checkIfTrainedToday()
@@ -116,53 +121,57 @@ class HomeViewModel @Inject constructor(
 
     fun completeDay(daysSize: Int, currentIndex: Int) {
 
+        if (_isCompletingDay.value || _hasTrainedToday.value) return
+
         viewModelScope.launch {
+            _isCompletingDay.value = true
 
-            // Verificar si ya se entrenó hoy
-            if (_hasTrainedToday.value) {
-                return@launch
+            val completed = withContext(Dispatchers.IO) {
+                val timestamp = System.currentTimeMillis()
+
+                val dayId = routineDayRepository
+                    .getRoutineDayIdByIndex(currentIndex)
+                    .firstOrNull()
+                    ?: return@withContext false
+
+                val exercises = exerciseRepository
+                    .getExercisesByDay(dayId)
+                    .firstOrNull()
+                    ?: emptyList()
+
+                val sessionId = trainingHistoryRepository
+                    .saveTrainingHistory(
+                        routineDayNumber = currentIndex + 1,
+                        timestamp = timestamp
+                    )
+
+                val historyExercises = exercises.map {
+
+                    ExerciseHistory(
+                        sessionId = sessionId,
+                        exerciseName = it.name,
+                        measureValue = it.measureValue,
+                        reps = it.reps,
+                        measureType = it.measureType,
+                        sets = it.sets,
+                        failureValue = it.failure
+                    )
+                }
+
+                exerciseHistoryRepository.insertExercises(historyExercises)
+
+                val newIndex = (currentIndex + 1) % daysSize
+
+                settingsRepository.saveCurrentDay(newIndex)
+
+                true
             }
 
-            val timestamp = System.currentTimeMillis()
-
-            val dayId = routineDayRepository
-                .getRoutineDayIdByIndex(currentIndex)
-                .firstOrNull()
-
-            if (dayId == null) return@launch
-
-            val exercises = exerciseRepository
-                .getExercisesByDay(dayId)
-                .firstOrNull()
-                ?: emptyList()
-
-            val sessionId = trainingHistoryRepository
-                .saveTrainingHistory(
-                    routineDayNumber = currentIndex + 1,
-                    timestamp = timestamp
-                )
-
-            val historyExercises = exercises.map {
-
-                ExerciseHistory(
-                    sessionId = sessionId,
-                    exerciseName = it.name,
-                    measureValue = it.measureValue,
-                    reps = it.reps,
-                    measureType = it.measureType,
-                    sets = it.sets,
-                    failureValue = it.failure
-                )
+            if (completed) {
+                _hasTrainedToday.value = true
             }
 
-            exerciseHistoryRepository.insertExercises(historyExercises)
-
-            val newIndex = (currentIndex + 1) % daysSize
-
-            settingsRepository.saveCurrentDay(newIndex)
-
-            // Actualizar el estado de que ya se entrenó hoy
-            _hasTrainedToday.value = true
+            _isCompletingDay.value = false
         }
     }
 
