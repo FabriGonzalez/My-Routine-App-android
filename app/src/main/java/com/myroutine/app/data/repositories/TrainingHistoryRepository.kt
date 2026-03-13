@@ -47,4 +47,22 @@ class TrainingHistoryRepository(
     suspend fun deleteTrainingHistory(trainingSession: TrainingSession) {
         trainingSessionDao.deleteTrainingHistory(trainingSession)
     }
+
+    suspend fun hasTrainedToday(): Boolean {
+        val calendar = java.util.Calendar.getInstance()
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        calendar.set(java.util.Calendar.MINUTE, 0)
+        calendar.set(java.util.Calendar.SECOND, 0)
+        calendar.set(java.util.Calendar.MILLISECOND, 0)
+        val startOfDay = calendar.timeInMillis
+
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 23)
+        calendar.set(java.util.Calendar.MINUTE, 59)
+        calendar.set(java.util.Calendar.SECOND, 59)
+        calendar.set(java.util.Calendar.MILLISECOND, 999)
+        val endOfDay = calendar.timeInMillis
+
+        val count = trainingSessionDao.hasTrainingInDateRange(startOfDay, endOfDay)
+        return count > 0
+    }
 }

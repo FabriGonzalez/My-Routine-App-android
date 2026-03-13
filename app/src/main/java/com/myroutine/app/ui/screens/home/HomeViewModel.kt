@@ -14,6 +14,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -58,12 +60,26 @@ class HomeViewModel @Inject constructor(
             emptyList()
         )
 
+    private val _hasTrainedToday = MutableStateFlow(false)
+    val hasTrainedToday: StateFlow<Boolean> = _hasTrainedToday.asStateFlow()
+
+    init {
+        checkIfTrainedToday()
+    }
+
+    private fun checkIfTrainedToday() {
+        viewModelScope.launch {
+            _hasTrainedToday.value = trainingHistoryRepository.hasTrainedToday()
+        }
+    }
+
     fun addExercise(
         name: String,
         sets: Int,
         reps: Int,
         measureValue: Double,
         measureType: MeasureType,
+        failureValue: Boolean,
         dayIndex: Int
     ) = viewModelScope.launch {
         val dayId = routineDayRepository
@@ -78,6 +94,7 @@ class HomeViewModel @Inject constructor(
             sets = sets,
             reps = reps,
             measureValue = measureValue,
+            failureValue = failureValue,
             measureType = measureType
         )
     }
@@ -100,6 +117,11 @@ class HomeViewModel @Inject constructor(
     fun completeDay(daysSize: Int, currentIndex: Int) {
 
         viewModelScope.launch {
+
+            // Verificar si ya se entrenó hoy
+            if (_hasTrainedToday.value) {
+                return@launch
+            }
 
             val timestamp = System.currentTimeMillis()
 
@@ -125,9 +147,11 @@ class HomeViewModel @Inject constructor(
                 ExerciseHistory(
                     sessionId = sessionId,
                     exerciseName = it.name,
-                    weight = it.measureValue.toFloat(),
+                    measureValue = it.measureValue,
                     reps = it.reps,
-                    sets = it.sets
+                    measureType = it.measureType,
+                    sets = it.sets,
+                    failureValue = it.failure
                 )
             }
 
@@ -136,6 +160,9 @@ class HomeViewModel @Inject constructor(
             val newIndex = (currentIndex + 1) % daysSize
 
             settingsRepository.saveCurrentDay(newIndex)
+
+            // Actualizar el estado de que ya se entrenó hoy
+            _hasTrainedToday.value = true
         }
     }
 

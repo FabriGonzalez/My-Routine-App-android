@@ -1,5 +1,6 @@
 package com.myroutine.app.ui.screens.calendar
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,6 +26,7 @@ import java.util.*
 import androidx.compose.material.icons.filled.FitnessCenter
 import com.myroutine.app.data.local.relation.TrainingSessionWithExercises
 import com.myroutine.app.ui.components.ExerciseHistoryTable
+import com.myroutine.app.ui.components.StreakSection
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,12 +87,34 @@ fun CalendarScreen(
 
             CalendarLegend()
 
-            uiState.selectedDate?.let { selectedDate ->
-                Spacer(modifier = Modifier.height(16.dp))
-                SelectedDateInfo(
-                    date = selectedDate,
-                    sessions = uiState.trainingsForSelectedDate
-                )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            AnimatedContent(targetState = uiState.selectedDate to uiState.trainingsForSelectedDate) { (selectedDate, sessions) ->
+
+                when {
+                    selectedDate == null -> {
+
+                        StreakSection(uiState)
+
+                    }
+
+                    sessions.isEmpty() -> {
+
+                        EmptySelectedDateInfo(
+                            date = selectedDate
+                        )
+
+                    }
+
+                    else -> {
+
+                        SelectedDateInfo(
+                            date = selectedDate,
+                            sessions = sessions
+                        )
+
+                    }
+                }
             }
         }
     }
@@ -140,13 +164,32 @@ private fun MonthNavigator(
 
 @Composable
 private fun WeekDaysHeader() {
-    val daysOfWeek = listOf("Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb")
+
+    val locale = Locale.getDefault()
+    val calendar = Calendar.getInstance(locale)
+
+    val daysOfWeek = remember {
+
+        val firstDay = calendar.firstDayOfWeek
+
+        (0..6).map { index ->
+
+            val day = (firstDay + index - 1) % 7 + 1
+            calendar.set(Calendar.DAY_OF_WEEK, day)
+
+            SimpleDateFormat("EEE", locale)
+                .format(calendar.time)
+                .replaceFirstChar { it.uppercase() }
+        }
+    }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
+
         daysOfWeek.forEach { day ->
+
             Text(
                 text = day,
                 modifier = Modifier.weight(1f),
@@ -304,12 +347,11 @@ private fun CalendarLegend() {
 }
 
 @Composable
-private fun SelectedDateInfo(
-    date: Long,
-    sessions: List<TrainingSessionWithExercises>
+private fun EmptySelectedDateInfo(
+    date: Long
 ) {
 
-    val dateFormat = SimpleDateFormat("EEEE, d 'de' MMMM", Locale("es", "ES"))
+    val dateFormat = SimpleDateFormat("EEEE, d 'de' MMMM", Locale.getDefault())
     val formattedDate = dateFormat.format(Date(date))
 
     Column(
@@ -323,52 +365,74 @@ private fun SelectedDateInfo(
             fontWeight = FontWeight.Bold
         )
 
-        if (sessions.isEmpty()) {
+        Text(
+            text = "Sin entrenamientos registrados",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
 
-            Text(
-                text = "Sin entrenamientos registrados",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+@Composable
+private fun SelectedDateInfo(
+    date: Long,
+    sessions: List<TrainingSessionWithExercises>
+) {
 
-        } else {
+    val dateFormat = SimpleDateFormat("EEEE, d 'de' MMMM", Locale.getDefault())
+    val formattedDate = dateFormat.format(Date(date))
 
-            sessions.forEach { session ->
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
 
-                Card(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+        Text(
+            text = formattedDate.replaceFirstChar { it.uppercase() },
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
 
-                    Column(
-                        modifier = Modifier
+        sessions.forEach { session ->
+
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+
+                Column(
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
-                    ) {
+                ) {
 
-                        Text(
-                            text = "Día ${session.session.routineDayNumber}",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                    Text(
+                        text = "Día ${session.session.routineDayNumber}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
 
-                        Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(12.dp))
 
-                        ExerciseHistoryTable(
-                            exercises = session.exercises,
-                            modifier = Modifier
+                    ExerciseHistoryTable(
+                        exercises = session.exercises,
+                        modifier = Modifier
                             .heightIn(max = 300.dp)
                             .fillMaxWidth()
-                        )
-                    }
+                    )
                 }
             }
         }
     }
 }
+
 private fun getCalendarDays(year: Int, month: Int): List<Calendar?> {
+
     val days = mutableListOf<Calendar?>()
 
-    val firstDayOfMonth = Calendar.getInstance().apply {
+    val locale = Locale.getDefault()
+
+    val calendar = Calendar.getInstance(locale).apply {
+        firstDayOfWeek = Calendar.getInstance(locale).firstDayOfWeek
         set(Calendar.YEAR, year)
         set(Calendar.MONTH, month)
         set(Calendar.DAY_OF_MONTH, 1)
@@ -378,23 +442,20 @@ private fun getCalendarDays(year: Int, month: Int): List<Calendar?> {
         set(Calendar.MILLISECOND, 0)
     }
 
-    val firstDayOfWeek = firstDayOfMonth.get(Calendar.DAY_OF_WEEK) - 1
+    val firstDayOffset =
+        (calendar.get(Calendar.DAY_OF_WEEK) - calendar.firstDayOfWeek + 7) % 7
 
-    repeat(firstDayOfWeek) {
+    repeat(firstDayOffset) {
         days.add(null)
     }
 
-    val daysInMonth = firstDayOfMonth.getActualMaximum(Calendar.DAY_OF_MONTH)
-    for (day in 1..daysInMonth) {
-        days.add(Calendar.getInstance().apply {
-            set(Calendar.YEAR, year)
-            set(Calendar.MONTH, month)
-            set(Calendar.DAY_OF_MONTH, day)
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        })
+    val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+
+    repeat(daysInMonth) {
+
+        days.add(calendar.clone() as Calendar)
+
+        calendar.add(Calendar.DAY_OF_MONTH, 1)
     }
 
     while (days.size % 7 != 0) {

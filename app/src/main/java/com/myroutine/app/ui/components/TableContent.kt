@@ -260,44 +260,53 @@ fun TableContent(
                                     else MaterialTheme.colorScheme.outline,
                                     shape = RoundedCornerShape(8.dp)
                                 )
-                                .padding(vertical = 10.dp, horizontal = 8.dp)
+                                .padding(vertical = 10.dp, horizontal = 8.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            BasicTextField(
-                                value = repsText,
-                                onValueChange = { newValue ->
-                                    if (newValue.isEmpty() || newValue.matches(Regex("^\\d+$"))) {
-                                        repsText = newValue
-                                        val newReps = newValue.toIntOrNull() ?: 0
-                                        onUpdate(exercise.copy(reps = newReps))
-                                    }
-                                },
-                                textStyle = TextStyle(
-                                    textAlign = TextAlign.Center,
-                                    color = if (isRepsFocused) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.onBackground,
-                                    fontSize = MaterialTheme.typography.bodyLarge.fontSize
-                                ),
-
-                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                singleLine = true,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .onFocusChanged { focusState ->
-                                        if (focusState.isFocused && !isRepsFocused) {
-                                            repsText = ""
+                            if (exercise.failure) {
+                                Text(
+                                    text = "Fallo",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    textAlign = TextAlign.Center
+                                )
+                            } else {
+                                BasicTextField(
+                                    value = repsText,
+                                    onValueChange = { newValue ->
+                                        if (newValue.isEmpty() || newValue.matches(Regex("^\\d+$"))) {
+                                            repsText = newValue
+                                            val newReps = newValue.toIntOrNull() ?: 0
+                                            onUpdate(exercise.copy(reps = newReps))
                                         }
-                                        if (!focusState.isFocused && repsText.isEmpty()) {
-                                            repsText = exercise.reps.toString()
-                                        }
-                                        isRepsFocused = focusState.isFocused
                                     },
-                                decorationBox = { innerTextField ->
-                                    Box(contentAlignment = Alignment.Center) {
-                                        innerTextField()
+                                    textStyle = TextStyle(
+                                        textAlign = TextAlign.Center,
+                                        color = if (isRepsFocused) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onBackground,
+                                        fontSize = MaterialTheme.typography.bodyLarge.fontSize
+                                    ),
+                                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    singleLine = true,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .onFocusChanged { focusState ->
+                                            if (focusState.isFocused && !isRepsFocused) {
+                                                repsText = ""
+                                            }
+                                            if (!focusState.isFocused && repsText.isEmpty()) {
+                                                repsText = exercise.reps.toString()
+                                            }
+                                            isRepsFocused = focusState.isFocused
+                                        },
+                                    decorationBox = { innerTextField ->
+                                        Box(contentAlignment = Alignment.Center) {
+                                            innerTextField()
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
 
                         Spacer(Modifier.width(8.dp))

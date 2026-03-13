@@ -36,6 +36,7 @@ fun HomeScreen(
     val daysCount by viewModel.daysCount.collectAsState()
     val currentDayIndex by viewModel.currentDayIndex.collectAsState()
     val exercises by viewModel.exercisesOfDay.collectAsState()
+    val hasTrainedToday by viewModel.hasTrainedToday.collectAsState()
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -192,8 +193,10 @@ fun HomeScreen(
                                     .height(56.dp),
                                 shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary
-                                )
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                                ),
+                                enabled = !hasTrainedToday
                             ) {
                                 Icon(
                                     Icons.Default.Check,
@@ -202,7 +205,7 @@ fun HomeScreen(
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    "Día completo",
+                                    text = if (hasTrainedToday) "Ya entrenaste hoy" else "Día completo",
                                     style = MaterialTheme.typography.titleSmall
                                 )
                             }
@@ -272,13 +275,14 @@ fun HomeScreen(
             show = showAddDialog,
             currentDayIndex = currentDayIndex,
             onDismiss = { showAddDialog = false },
-            onAddExercise = { name, sets, reps, measureValue, measureType, dayIndex ->
+            onAddExercise = { name, sets, reps, measureValue, measureType, failureValue, dayIndex ->
                 viewModel.addExercise(
                     name = name,
                     sets = sets,
                     reps = reps,
                     measureValue = measureValue,
                     measureType = measureType,
+                    failureValue = failureValue,
                     dayIndex = dayIndex
                 )
                 showAddDialog = false

@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.myroutine.app.data.local.entity.ExerciseHistory
+import com.myroutine.app.data.local.entity.MeasureType
 
 @Composable
 fun ExerciseHistoryTable(
@@ -43,8 +44,24 @@ fun ExerciseHistoryTable(
                     style = MaterialTheme.typography.titleMedium
                 )
 
+                val measureText = when (exercise.measureType) {
+                    MeasureType.WEIGHT -> {
+                        val value = if (exercise.measureValue % 1.0 == 0.0)
+                            exercise.measureValue.toInt().toString()
+                        else
+                            exercise.measureValue.toString()
+                        "$value Kg"
+                    }
+                    MeasureType.TIME -> {
+                        val value = if (exercise.measureValue % 1.0 == 0.0)
+                            exercise.measureValue.toInt().toString()
+                        else
+                            exercise.measureValue.toString()
+                        "$value s"
+                    }
+                }
                 Text(
-                    text = "${exercise.weight}",
+                    text = measureText,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
                 )
@@ -52,7 +69,7 @@ fun ExerciseHistoryTable(
                 Spacer(Modifier.width(8.dp))
 
                 Text(
-                    text = "${exercise.reps}",
+                    text = if (exercise.failureValue) "Fallo" else "${exercise.reps}",
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
                 )

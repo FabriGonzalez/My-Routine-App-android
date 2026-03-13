@@ -20,7 +20,9 @@ data class ExerciseHistory(
     val id: Long = 0,
     val sessionId: Long,
     val exerciseName: String,
-    val weight: Float,
-    val reps: Int,
-    val sets: Int
+    val measureValue: Double,
+    val measureType: MeasureType,
+    val reps: Int?,
+    val sets: Int,
+    val failureValue: Boolean
 )

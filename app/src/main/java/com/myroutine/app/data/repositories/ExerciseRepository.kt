@@ -17,13 +17,15 @@ class ExerciseRepository (
         sets: Int,
         reps: Int,
         measureValue: Double,
-        measureType: MeasureType
+        measureType: MeasureType,
+        failureValue: Boolean
     ) {
         val exercise = Exercise(
             routineDayId = routineDayId,
             name = name,
             sets = sets,
             reps = reps,
+            failure = failureValue,
             measureValue = measureValue,
             measureType = measureType,
             orderIndex = getNextOrderIndex(routineDayId)

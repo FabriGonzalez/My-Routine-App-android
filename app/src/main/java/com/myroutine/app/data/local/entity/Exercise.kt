@@ -23,7 +23,8 @@ data class Exercise(
     val routineDayId: Long,
     val name: String,
     val sets: Int,
-    val reps: Int,
+    val reps: Int?,
+    val failure: Boolean,
     val measureValue: Double,
     val measureType: MeasureType,
     val orderIndex: Int

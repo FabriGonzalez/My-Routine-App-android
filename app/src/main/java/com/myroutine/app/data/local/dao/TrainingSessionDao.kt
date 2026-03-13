@@ -45,4 +45,13 @@ interface TrainingSessionDao {
         startDate: Long,
         endDate: Long
     ): Flow<List<TrainingSessionWithExercises>>
+
+    @Query("""
+        SELECT COUNT(*) FROM training_session
+        WHERE completedDate BETWEEN :startDate AND :endDate
+    """)
+    suspend fun hasTrainingInDateRange(
+        startDate: Long,
+        endDate: Long
+    ): Int
 }

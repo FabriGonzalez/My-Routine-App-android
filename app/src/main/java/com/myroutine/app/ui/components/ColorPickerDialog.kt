@@ -28,6 +28,7 @@ fun ColorPickerDialog(
     val controller = rememberColorPickerController()
     var selectedColor by remember { mutableStateOf(Color.White) }
     var hexInput by remember { mutableStateOf("") }
+    var lightness by remember { mutableStateOf(1f) }
 
     val quickColors = listOf(
         Color(0xFFE57373),
@@ -97,10 +98,24 @@ fun ColorPickerDialog(
                     },
                     onColorChanged = {
                         selectedColor = it.color
+
+                        val hsv = FloatArray(3)
+                        android.graphics.Color.colorToHSV(selectedColor.toArgb(), hsv)
+
+                        lightness = 1f - hsv[1]
                     }
                 )
 
                 Spacer(Modifier.height(16.dp))
+
+                Text(
+                    text = "Brillo",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(6.dp))
 
                 BrightnessSlider(
                     modifier = Modifier
@@ -118,6 +133,66 @@ fun ColorPickerDialog(
 
                 Spacer(Modifier.height(12.dp))
 
+                Column {
+
+                    Text(
+                        text = "Claridad",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(Modifier.height(6.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(36.dp)
+                            .border(
+                                BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.onSurface
+                                ),
+                                RoundedCornerShape(8.dp)
+                            )
+                            .padding(horizontal = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+
+                        LightnessSlider(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(30.dp),
+                            value = lightness,
+                            selectedColor = selectedColor,
+                            onValueChange = {
+
+                                lightness = it
+
+                                val hsv = FloatArray(3)
+                                android.graphics.Color.colorToHSV(selectedColor.toArgb(), hsv)
+
+                                hsv[1] = 1f - it
+
+                                val newColor = Color(android.graphics.Color.HSVToColor(hsv))
+
+                                selectedColor = newColor
+                                controller.selectByColor(newColor, fromUser = false)
+                            }
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                Text(
+                    text = "Transparencia",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(6.dp))
+
                 AlphaSlider(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -132,7 +207,16 @@ fun ColorPickerDialog(
                     controller = controller
                 )
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(12.dp))
+
+                Text(
+                    text = "Colores rápidos",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(Modifier.height(6.dp))
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
