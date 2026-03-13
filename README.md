@@ -24,8 +24,6 @@ Aplicación Android para crear y seguir rutinas de entrenamiento por días. Perm
 
 ## 📸 Capturas
 
-## 📸 Capturas
-
 <p align="center">
   <img src="screenshots/home.jpg" width="250">
   <img src="screenshots/calendar1.jpg" width="250">
