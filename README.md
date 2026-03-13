@@ -6,19 +6,19 @@ Aplicación Android para crear y seguir rutinas de entrenamiento por días. Perm
 
 ## 🚀 Funcionalidades
 
-- 📅 **Rutina por días** (configurable).  
-- 💪 **Lista de ejercicios por día** con:  
+- **Rutina por días** (configurable).  
+- **Lista de ejercicios por día** con:  
   - Nombre  
   - Series  
   - Repeticiones  
   - Medida (valor y tipo)  
   - Opción **al fallo** (`failureValue = true` se muestra como `Fallo`)  
-- 🔄 **Edición rápida** de ejercicios desde la tabla.  
-- ↕️ **Reordenamiento** de ejercicios.  
-- ❌ **Eliminación** de ejercicios.  
-- ✅ **Botón `Día completo`**: registra un día de entrenamiento solo una vez (evita duplicados en el calendario).  
-- 📆 **Calendario** para visualizar días entrenados.  
-- ⚙️ **Ajustes**: cambio de días y personalización de tema/colores.  
+- **Edición rápida** de ejercicios desde la tabla.  
+- **Reordenamiento** de ejercicios.  
+- **Eliminación** de ejercicios.  
+- **Botón `Día completo`**: registra un día de entrenamiento solo una vez (evita duplicados en el calendario).  
+- **Calendario** para visualizar días entrenados.  
+- **Ajustes**: cambio de días y personalización de tema/colores.  
 
 ---
 
