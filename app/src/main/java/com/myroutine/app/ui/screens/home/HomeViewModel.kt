@@ -119,7 +119,11 @@ class HomeViewModel @Inject constructor(
         settingsRepository.saveCurrentDay(index)
     }
 
-    fun completeDay(daysSize: Int, currentIndex: Int) {
+    fun completeDay(
+        daysSize: Int,
+        currentIndex: Int,
+        trainingTimestamp: Long = System.currentTimeMillis()
+    ) {
 
         if (_isCompletingDay.value || _hasTrainedToday.value) return
 
@@ -127,8 +131,6 @@ class HomeViewModel @Inject constructor(
             _isCompletingDay.value = true
 
             val completed = withContext(Dispatchers.IO) {
-                val timestamp = System.currentTimeMillis()
-
                 val dayId = routineDayRepository
                     .getRoutineDayIdByIndex(currentIndex)
                     .firstOrNull()
@@ -142,7 +144,7 @@ class HomeViewModel @Inject constructor(
                 val sessionId = trainingHistoryRepository
                     .saveTrainingHistory(
                         routineDayNumber = currentIndex + 1,
-                        timestamp = timestamp
+                        timestamp = trainingTimestamp
                     )
 
                 val historyExercises = exercises.map {
@@ -168,7 +170,7 @@ class HomeViewModel @Inject constructor(
             }
 
             if (completed) {
-                _hasTrainedToday.value = true
+                _hasTrainedToday.value = trainingHistoryRepository.hasTrainedToday()
             }
 
             _isCompletingDay.value = false

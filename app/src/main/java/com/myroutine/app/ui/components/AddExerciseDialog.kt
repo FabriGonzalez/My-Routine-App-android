@@ -83,7 +83,6 @@ fun AddExerciseDialog(
 
                 Spacer(Modifier.height(12.dp))
 
-                // Series y Repeticiones en la misma fila
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)

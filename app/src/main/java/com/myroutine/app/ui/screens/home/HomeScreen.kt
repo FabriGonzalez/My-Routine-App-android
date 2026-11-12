@@ -22,6 +22,7 @@ import com.myroutine.app.ui.components.SettingsDrawerContent
 import com.myroutine.app.ui.components.TableContent
 import com.myroutine.app.ui.components.TableHeader
 import com.myroutine.app.ui.components.ThemeEditorDialog
+import com.myroutine.app.ui.components.TrainingDayPickerDialog
 import com.myroutine.app.ui.theme.ThemeViewModel
 import kotlinx.coroutines.launch
 
@@ -45,6 +46,7 @@ fun HomeScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var showDaysDialog by remember { mutableStateOf(false) }
     var showThemeEditor by remember { mutableStateOf(false) }
+    var showTrainingDayPicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(daysCount) {
         if (daysCount != null && daysCount == 0) {
@@ -183,12 +185,7 @@ fun HomeScreen(
                             }
 
                             Button(
-                                onClick = {
-                                    viewModel.completeDay(
-                                        daysSize = days.size,
-                                        currentIndex = currentDayIndex
-                                    )
-                                },
+                                onClick = { showTrainingDayPicker = true },
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(56.dp),
@@ -299,6 +296,20 @@ fun HomeScreen(
                     dayIndex = dayIndex
                 )
                 showAddDialog = false
+            }
+        )
+    }
+
+    if (showTrainingDayPicker) {
+        TrainingDayPickerDialog(
+            onDismiss = { showTrainingDayPicker = false },
+            onConfirm = { selectedTimestamp ->
+                viewModel.completeDay(
+                    daysSize = days.size,
+                    currentIndex = currentDayIndex,
+                    trainingTimestamp = selectedTimestamp
+                )
+                showTrainingDayPicker = false
             }
         )
     }
