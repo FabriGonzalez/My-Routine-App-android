@@ -51,15 +51,15 @@ class SettingsDataStore @Inject constructor(
     }
 
     val primaryColor: Flow<Long> = context.dataStore.data.map {
-        it[PRIMARY_COLOR_KEY] ?: 0xFF00E676
+        it[PRIMARY_COLOR_KEY] ?: 0xFF2EE59D
     }
 
     val backgroundColor: Flow<Long> = context.dataStore.data.map {
-        it[BACKGROUND_COLOR_KEY] ?: 0xFF121212
+        it[BACKGROUND_COLOR_KEY] ?: 0xFF0E1211
     }
 
     val surfaceColor: Flow<Long> = context.dataStore.data.map {
-        it[SURFACE_COLOR_KEY] ?: 0xFF1E1E1E
+        it[SURFACE_COLOR_KEY] ?: 0xFF171C1A
     }
 
     suspend fun savePrimaryColor(color: Long) {

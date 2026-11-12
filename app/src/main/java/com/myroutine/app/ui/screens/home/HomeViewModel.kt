@@ -41,26 +41,26 @@ class HomeViewModel @Inject constructor(
         initialValue = null
     )
 
-    val currentDayIndex = settingsRepository.currentDayIndex.stateIn(
+    // null = todavía cargando; evita mostrar "Día 1" un instante antes del día guardado
+    val currentDayIndex: StateFlow<Int?> = settingsRepository.currentDayIndex.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = 0
+        initialValue = null
     )
 
-    private val currentRoutineDayId =
-        currentDayIndex.flatMapLatest { index ->
-            routineDayRepository.getRoutineDayIdByIndex(index)
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
-    val exercisesOfDay: StateFlow<List<Exercise>> =
-        currentRoutineDayId.flatMapLatest { dayId ->
-            if (dayId == null) flowOf(emptyList())
-            else exerciseRepository.getExercisesByDay(dayId)
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5_000),
-            emptyList()
-        )
+    // null = todavía cargando; se distingue de una lista vacía para no mostrar el estado vacío de más
+    val exercisesOfDay: StateFlow<List<Exercise>?> =
+        settingsRepository.currentDayIndex
+            .flatMapLatest { index -> routineDayRepository.getRoutineDayIdByIndex(index) }
+            .flatMapLatest { dayId ->
+                if (dayId == null) flowOf(emptyList())
+                else exerciseRepository.getExercisesByDay(dayId)
+            }
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5_000),
+                null
+            )
 
     private val _hasTrainedToday = MutableStateFlow(false)
     val hasTrainedToday: StateFlow<Boolean> = _hasTrainedToday.asStateFlow()
@@ -106,6 +106,10 @@ class HomeViewModel @Inject constructor(
 
     fun deleteExercise(exercise: Exercise) = viewModelScope.launch {
         exerciseRepository.deleteExercise(exercise)
+    }
+
+    fun restoreExercise(exercise: Exercise) = viewModelScope.launch {
+        exerciseRepository.restoreExercise(exercise)
     }
 
     fun saveRoutine(days: Int) = viewModelScope.launch {

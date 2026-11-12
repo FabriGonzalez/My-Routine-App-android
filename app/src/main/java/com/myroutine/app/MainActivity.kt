@@ -21,9 +21,12 @@ class MainActivity : ComponentActivity() {
 
             val themeViewModel: ThemeViewModel = hiltViewModel()
             val themeConfig by themeViewModel.themeConfig.collectAsState()
+            val isThemeLoaded by themeViewModel.isLoaded.collectAsState()
 
-            MyRoutineTheme(themeConfig = themeConfig) {
-                NavGraph(themeViewModel)
+            if (isThemeLoaded) {
+                MyRoutineTheme(themeConfig = themeConfig) {
+                    NavGraph(themeViewModel)
+                }
             }
         }
     }

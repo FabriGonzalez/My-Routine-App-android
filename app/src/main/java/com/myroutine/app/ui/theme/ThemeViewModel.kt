@@ -17,14 +17,12 @@ class ThemeViewModel @Inject constructor(
     private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 
-    private val defaultTheme = AppThemeConfig(
-        primary = Color(0xFF00E676),
-        background = Color(0xFF121212),
-        surface = Color(0xFF1E1E1E)
-    )
-
-    private val _themeConfig = MutableStateFlow(defaultTheme)
+    private val _themeConfig = MutableStateFlow(defaultThemeConfig)
     val themeConfig: StateFlow<AppThemeConfig> = _themeConfig
+
+    // Hasta leer los colores guardados no se dibuja la app, para no mostrar un instante el tema por defecto
+    private val _isLoaded = MutableStateFlow(false)
+    val isLoaded: StateFlow<Boolean> = _isLoaded
 
     init {
         viewModelScope.launch {
@@ -41,7 +39,18 @@ class ThemeViewModel @Inject constructor(
                 )
             }.collect {
                 _themeConfig.value = it
+                _isLoaded.value = true
             }
+        }
+    }
+
+    fun applyPreset(config: AppThemeConfig) {
+        _themeConfig.value = config
+
+        viewModelScope.launch {
+            settingsDataStore.savePrimaryColor(config.primary.toArgb().toLong())
+            settingsDataStore.saveBackgroundColor(config.background.toArgb().toLong())
+            settingsDataStore.saveSurfaceColor(config.surface.toArgb().toLong())
         }
     }
 

@@ -40,6 +40,10 @@ class ExerciseRepository (
     suspend fun deleteExercise(exercise: Exercise) =
         exerciseDao.deleteExercise(exercise)
 
+    // Reinserta con el mismo id y orden, para el "Deshacer" después de borrar
+    suspend fun restoreExercise(exercise: Exercise) =
+        exerciseDao.insertExercise(exercise)
+
     private suspend fun getNextOrderIndex(routineDayId: Long): Int {
         val max = exerciseDao.getMaxOrderIndex(routineDayId) ?: 0
         return max + 1

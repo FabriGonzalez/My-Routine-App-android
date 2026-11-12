@@ -31,12 +31,12 @@ fun ColorPickerDialog(
     var lightness by remember { mutableStateOf(1f) }
 
     val quickColors = listOf(
-        Color(0xFFE57373),
-        Color(0xFFFFB74D),
-        Color(0xFFFFF176),
-        Color(0xFF81C784),
-        Color(0xFF64B5F6),
-        Color(0xFFBA68C8)
+        Color(0xFF2EE59D),
+        Color(0xFFFF6FAE),
+        Color(0xFFC8F031),
+        Color(0xFFFF7A1A),
+        Color(0xFF5AA9FF),
+        Color(0xFFB388FF)
     )
 
     AlertDialog(
@@ -58,7 +58,7 @@ fun ColorPickerDialog(
             }
         },
         title = {
-            Text("Selecciona un color")
+            Text("Seleccioná un color")
         },
         text = {
 
