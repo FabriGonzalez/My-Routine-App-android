@@ -37,6 +37,14 @@ val themePresets = listOf(
             background = Color(0xFFFFFFBD),
             surface = Color(0xFFFFDFA6)
         )
+    ),
+    ThemePreset(
+        name = "Lila nube",
+        config = AppThemeConfig(
+            primary = Color(0xFF7C5CC4),
+            background = Color(0xFFF3EEFA),
+            surface = Color(0xFFFFFFFF)
+        )
     )
 )
 
