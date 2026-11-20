@@ -20,7 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.myroutine.app.ui.components.AddExerciseDialog
+import com.myroutine.app.data.local.entity.Exercise
+import com.myroutine.app.ui.components.ExerciseDialog
 import com.myroutine.app.ui.components.RoutineDaysDialog
 import com.myroutine.app.ui.components.SettingsDrawerContent
 import com.myroutine.app.ui.components.TableContent
@@ -50,6 +51,7 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
 
     var showAddDialog by remember { mutableStateOf(false) }
+    var editingExercise by remember { mutableStateOf<Exercise?>(null) }
     var showDaysDialog by remember { mutableStateOf(false) }
     var showThemeEditor by remember { mutableStateOf(false) }
     var showTrainingDayPicker by remember { mutableStateOf(false) }
@@ -182,6 +184,7 @@ fun HomeScreen(
                             viewModel.reorderExercises(from, to, exercises)
                         },
                         onUpdate = { viewModel.updateExercise(it) },
+                        onEdit = { editingExercise = it },
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -201,11 +204,9 @@ fun HomeScreen(
     }
 
     if (showAddDialog) {
-        AddExerciseDialog(
-            show = showAddDialog,
-            currentDayIndex = currentDayIndex,
+        ExerciseDialog(
             onDismiss = { showAddDialog = false },
-            onAddExercise = { name, sets, reps, measureValue, measureType, failureValue, dayIndex ->
+            onConfirm = { name, sets, reps, measureValue, measureType, failureValue ->
                 viewModel.addExercise(
                     name = name,
                     sets = sets,
@@ -213,9 +214,29 @@ fun HomeScreen(
                     measureValue = measureValue,
                     measureType = measureType,
                     failureValue = failureValue,
-                    dayIndex = dayIndex
+                    dayIndex = currentDayIndex
                 )
                 showAddDialog = false
+            }
+        )
+    }
+
+    editingExercise?.let { exercise ->
+        ExerciseDialog(
+            initial = exercise,
+            onDismiss = { editingExercise = null },
+            onConfirm = { name, sets, reps, measureValue, measureType, failureValue ->
+                viewModel.updateExercise(
+                    exercise.copy(
+                        name = name,
+                        sets = sets,
+                        reps = reps,
+                        measureValue = measureValue,
+                        measureType = measureType,
+                        failure = failureValue
+                    )
+                )
+                editingExercise = null
             }
         )
     }

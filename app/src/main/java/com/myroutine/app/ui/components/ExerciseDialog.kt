@@ -31,24 +31,28 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.myroutine.app.data.local.entity.Exercise
 import com.myroutine.app.data.local.entity.MeasureType
 
+/**
+ * Formulario de ejercicio. Sin [initial] crea uno nuevo; con [initial] arranca
+ * con sus datos cargados y funciona como edición.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddExerciseDialog(
-    show: Boolean,
-    currentDayIndex: Int,
+fun ExerciseDialog(
     onDismiss: () -> Unit,
-    onAddExercise: (name: String, sets: Int, reps: Int, measureValue: Double, measureType: MeasureType, failureValue: Boolean, dayIndex: Int) -> Unit
+    onConfirm: (name: String, sets: Int, reps: Int, measureValue: Double, measureType: MeasureType, failureValue: Boolean) -> Unit,
+    initial: Exercise? = null
 ) {
-    if (!show) return
+    val isEditing = initial != null
 
-    var name by remember { mutableStateOf("") }
-    var setsText by remember { mutableStateOf("") }
-    var measureValueText by remember { mutableStateOf("") }
-    var repsText by remember { mutableStateOf("") }
-    var failureValueText by remember { mutableStateOf(false) }
-    var measureType by remember { mutableStateOf(MeasureType.WEIGHT) }
+    var name by remember { mutableStateOf(initial?.name ?: "") }
+    var setsText by remember { mutableStateOf(initial?.sets?.toString() ?: "") }
+    var measureValueText by remember { mutableStateOf(initial?.measureValue?.let(::formatMeasure) ?: "") }
+    var repsText by remember { mutableStateOf(initial?.reps?.takeIf { it > 0 }?.toString() ?: "") }
+    var failureValueText by remember { mutableStateOf(initial?.failure ?: false) }
+    var measureType by remember { mutableStateOf(initial?.measureType ?: MeasureType.WEIGHT) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -57,7 +61,7 @@ fun AddExerciseDialog(
         textContentColor = MaterialTheme.colorScheme.onSurface,
         title = {
             Text(
-                "Agregar ejercicio",
+                if (isEditing) "Editar ejercicio" else "Agregar ejercicio",
                 style = MaterialTheme.typography.headlineSmall
             )
         },
@@ -261,14 +265,13 @@ fun AddExerciseDialog(
                     val validMeasure = measureValue >= 0
 
                     if (name.isNotBlank() && sets > 0 && validRepsOrFailure && validMeasure) {
-                        onAddExercise(
+                        onConfirm(
                             name.trim(),
                             sets,
                             reps,
                             measureValue,
                             measureType,
-                            failureValueText,
-                            currentDayIndex
+                            failureValueText
                         )
                     }
                 },
@@ -277,7 +280,7 @@ fun AddExerciseDialog(
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
-                Text("Agregar")
+                Text(if (isEditing) "Guardar" else "Agregar")
             }
         },
         dismissButton = {

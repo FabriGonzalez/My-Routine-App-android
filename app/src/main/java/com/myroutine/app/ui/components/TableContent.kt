@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,13 +33,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.myroutine.app.data.local.entity.Exercise
 import com.myroutine.app.data.local.entity.MeasureType
 import com.myroutine.app.ui.theme.MetricTextStyle
 
-private fun formatMeasure(value: Double): String {
+internal fun formatMeasure(value: Double): String {
     return if (value % 1.0 == 0.0) {
         value.toLong().toString()
     } else {
@@ -52,6 +54,7 @@ fun TableContent(
     onDelete: (Exercise) -> Unit,
     onMove: (from: Int, to: Int) -> Unit,
     onUpdate: (Exercise) -> Unit,
+    onEdit: (Exercise) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -127,19 +130,16 @@ fun TableContent(
                 var setsText by remember(exercise.id) {
                     mutableStateOf(exercise.sets.toString())
                 }
-                var nameText by remember(exercise.id) {
-                    mutableStateOf(exercise.name)
-                }
-
                 var isWeightFocused by remember { mutableStateOf(false) }
                 var isRepsFocused by remember { mutableStateOf(false) }
                 var isSetsFocused by remember { mutableStateOf(false) }
-                var isNameFocused by remember { mutableStateOf(false) }
 
-                LaunchedEffect(exercise.name) {
-                    if (!isNameFocused && nameText != exercise.name) {
-                        nameText = exercise.name
-                    }
+                // Reps y series también pueden cambiar desde el modal de edición
+                LaunchedEffect(exercise.reps, isRepsFocused) {
+                    if (!isRepsFocused) repsText = (exercise.reps ?: 0).toString()
+                }
+                LaunchedEffect(exercise.sets, isSetsFocused) {
+                    if (!isSetsFocused) setsText = exercise.sets.toString()
                 }
 
                 LaunchedEffect(exercise.measureValue, isWeightFocused) {
@@ -164,55 +164,32 @@ fun TableContent(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            BasicTextField(
-                                value = nameText,
-                                onValueChange = { newValue ->
-                                    nameText = newValue
-                                    val trimmed = newValue.trim()
-                                    if (trimmed.isNotEmpty() && trimmed != exercise.name) {
-                                        onUpdate(exercise.copy(name = trimmed))
-                                    }
-                                },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                textStyle = MaterialTheme.typography.titleMedium.copy(
-                                    color = if (isNameFocused) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.onBackground
-                                ),
-                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                            Text(
+                                text = exercise.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier
                                     .weight(1f)
-                                    .onFocusChanged { focusState ->
-                                        if (focusState.isFocused && !isNameFocused) {
-                                            if (nameText == exercise.name) {
-                                                nameText = ""
-                                            }
-                                        }
-
-                                        if (!focusState.isFocused) {
-                                            val trimmed = nameText.trim()
-                                            if (trimmed.isEmpty()) {
-                                                nameText = exercise.name
-                                            } else if (trimmed != exercise.name) {
-                                                onUpdate(exercise.copy(name = trimmed))
-                                            }
-                                        }
-
-                                        isNameFocused = focusState.isFocused
-                                    },
-                                decorationBox = { innerTextField ->
-                                    Box(contentAlignment = Alignment.CenterStart) {
-                                        if (nameText.isEmpty()) {
-                                            Text(
-                                                text = exercise.name,
-                                                style = MaterialTheme.typography.titleMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                        innerTextField()
-                                    }
-                                }
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable(onClickLabel = "Editar ejercicio") { onEdit(exercise) }
+                                    .padding(vertical = 4.dp)
                             )
+
+                            IconButton(
+                                onClick = { onEdit(exercise) },
+                                modifier = Modifier
+                                    .offset(x = 10.dp)
+                                    .size(44.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Editar ${exercise.name}",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
 
                             Box(
                                 modifier = Modifier
